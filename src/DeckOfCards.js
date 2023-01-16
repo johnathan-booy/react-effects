@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import axios from "axios";
 import Card from "./Card.js";
 import("./DeckOfCards.css");
@@ -6,8 +6,11 @@ import("./DeckOfCards.css");
 const DeckOfCards = () => {
 	const [deckId, setDeckId] = useState(null);
 	const [cards, setCards] = useState([]);
+	const [autoDraw, setAutoDraw] = useState(false);
+	const timerRef = useRef();
 
-	const GetDeck = async () => {
+	//  Get a new deckId from the API
+	const getDeck = async () => {
 		try {
 			const res = await axios.get(
 				"https://deckofcardsapi.com/api/deck/new/shuffle/?deck_count=1"
@@ -19,38 +22,64 @@ const DeckOfCards = () => {
 		}
 	};
 
-	// Get the deckId on page reload
-	useEffect(() => {
-		GetDeck();
-	}, []);
-
+	// Draw a card from deck
 	const drawCard = async () => {
+		const randomAroundZero = (num) =>
+			Math.floor(Math.random() * num) + 1 - num / 2;
 		try {
 			const res = await axios.get(
 				`https://deckofcardsapi.com/api/deck/${deckId}/draw/?count=1`
 			);
 			const { code, image, value, suit } = res.data.cards[0];
-			setCards([
+			setCards((cards) => [
 				...cards,
-				{ code, image, value, suit, rotation: randomRotation() },
+				{
+					code,
+					image,
+					value,
+					suit,
+					rotation: randomAroundZero(60),
+				},
 			]);
 		} catch (e) {
 			alert("Error: no cards remaining!");
 			setCards([]);
-			GetDeck();
+			getDeck();
+			setAutoDraw(false);
 		}
 	};
 
-	const randomRotation = () => Math.floor(Math.random() * 60) + 1 - 20;
+	// When button is clicked, start or stop drawing cards
+	const toggleAutoDraw = () => {
+		setAutoDraw((prevAutoDraw) => !prevAutoDraw);
+	};
+
+	// Get the deckId on page reload
+	useEffect(() => {
+		getDeck();
+	}, []);
+
+	// Set timer for drawing cards
+	useEffect(() => {
+		if (autoDraw && deckId) {
+			timerRef.current = setInterval(() => {
+				drawCard();
+			}, 500);
+		}
+
+		return function timerCleanup() {
+			clearInterval(timerRef.current);
+		};
+	}, [autoDraw]);
 
 	return (
 		<div className="DeckOfCards">
 			<h2 className="DeckOfCards-header">Deck Of Cards</h2>
-			<button className="DeckOfCards-draw" onClick={drawCard}>
-				Draw a Card
+			<button className="DeckOfCards-draw" onClick={toggleAutoDraw}>
+				{autoDraw ? "Stop" : "Start"} Drawing
 			</button>
 
-			{cards.length ? (
+			{cards.length > 0 && (
 				<div className="DeckOfCards-cards">
 					{cards.map(({ code, image, value, suit, rotation }) => (
 						<Card
@@ -63,7 +92,7 @@ const DeckOfCards = () => {
 						/>
 					))}
 				</div>
-			) : null}
+			)}
 		</div>
 	);
 };
