@@ -1,0 +1,39 @@
+.DeckOfCards {
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	align-items: center;
+}
+.DeckOfCards-draw {
+	background-color: #3f51b5;
+	color: white;
+	font-size: 16px;
+	padding: 10px 20px;
+	border: none;
+	cursor: pointer;
+	border-radius: 5px;
+	box-shadow: 0px 2px 5px #ccc;
+}
+.DeckOfCards-draw:hover {
+	box-shadow: 0px 5px 10px #ccc;
+}
+.DeckOfCards-draw:active {
+	box-shadow: 0px 2px 5px #ccc;
+}
+.DeckOfCards-draw:focus {
+	outline: none;
+}
+
+.DeckOfCards-cards {
+	position: relative;
+	margin: 50px 20px;
+	width: 226px;
+	height: 314px;
+}
+
+.DeckOfCards-cards img {
+	position: absolute;
+	width: 100%;
+	height: 100%;
+	margin: auto;
+}
